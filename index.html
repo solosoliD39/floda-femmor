@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Femmor">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Floda Femmor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky header (namn, flikar) · notiser · Pass (närvaro → femmor → dela) / Optimal (4 femmor + reserver + MV, versionsstämpel) */
+:root{
+  --bg:#f2f4f7; --surface:#ffffff; --fg:#131922; --muted:#5b6676; --line:#dbe0e8;
+  --accent:#1f6fd1; --accent-fg:#ffffff; --done:#1f8a52; --done-bg:#e5f3eb; --warn:#a85a07; --warn-bg:#fdf0e1; --bad:#c2410c; --bad-bg:#fde9e1;
+  --pB:#2563c9; --pC:#c2410c; --pF:#15803d; --pM:#6d28d9;
+  --vest-black:#111111; --vest-red:#c8102e; --paper:#ffffff; --ink:#111111; --ink-muted:#666666; --gk:#5b2bb5;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Barlow",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e131a; --surface:#18202b; --fg:#eef2f7; --muted:#94a1b3; --line:#2a3442;
+  --accent:#5aa2ff; --accent-fg:#0b1220; --done:#4fcf8a; --done-bg:#15301f; --warn:#f0a54a; --warn-bg:#372814; --bad:#ff8a5c; --bad-bg:#3a1e14;
+  --pB:#5f9cff; --pC:#ff8f5e; --pF:#4fcf8a; --pM:#b18cff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e131a; --surface:#18202b; --fg:#eef2f7; --muted:#94a1b3; --line:#2a3442;
+  --accent:#5aa2ff; --accent-fg:#0b1220; --done:#4fcf8a; --done-bg:#15301f; --warn:#f0a54a; --warn-bg:#372814; --bad:#ff8a5c; --bad-bg:#3a1e14;
+  --pB:#5f9cff; --pC:#ff8f5e; --pF:#4fcf8a; --pM:#b18cff; color-scheme:dark}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--body);font-size:17px;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 96px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line);
+  margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:12px max(16px,env(safe-area-inset-left,0px)) 0}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:28px;letter-spacing:.01em;margin:0;text-transform:uppercase}
+.who{font:600 14px var(--body);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs{display:flex;gap:4px;margin-top:8px}
+.tabs button{flex:1;font:600 16px var(--body);padding:10px 0 9px;border:0;background:none;color:var(--muted);border-bottom:3px solid transparent;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tabs small{font-weight:500;font-size:12px;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+h2{font-family:var(--display);font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.02em;margin:0}
+h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 8px;font-variant-numeric:tabular-nums}
+h3 .t{font-family:var(--display);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.02em}
+h3 .n{font:500 13px var(--body);color:var(--muted);text-align:right}
+h3 .n.warn{color:var(--warn);font-weight:600}
+.grp{margin-top:22px}
+.grp.quiet h3 .t{font:600 13px var(--body);letter-spacing:.08em;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px}
+.card p{margin:0}
+.meta{font-size:14px;color:var(--muted);margin-top:4px}
+.hint{font-size:14px;color:var(--muted);margin:8px 0 0;line-height:1.4}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.btn{font:600 15px var(--body);border-radius:10px;padding:10px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none;display:inline-flex;align-items:center;gap:6px;min-height:42px;box-sizing:border-box}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:transparent}
+.btn.wa{background:#1f8a52;color:#fff;border-color:transparent}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.link{font:600 14px var(--body);color:var(--accent);background:none;border:0;padding:6px 0;cursor:pointer}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:600 15px var(--body);border:0;background:var(--surface);color:var(--muted);padding:10px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+input[type="text"],input[type="date"],select{font:500 16px var(--body);color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:42px;box-sizing:border-box}
+input[type="text"]{min-width:0}
+.formrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.formrow input[type="text"]{flex:1 1 160px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+li{display:flex;gap:6px}
+.row{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left;min-height:54px;padding:8px 12px;
+  background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;font:500 17px var(--body);cursor:pointer}
+.row.static{cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.box{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);display:grid;place-items:center}
+.box svg{width:15px;height:15px;opacity:0}
+.name{flex:1;min-width:0;overflow-wrap:anywhere}
+.sub{font-size:13px;color:var(--muted);display:block;margin-top:1px}
+.sub.note{color:var(--warn)}
+.row[aria-pressed="true"]{background:var(--done-bg);border-color:transparent}
+.row[aria-pressed="true"] .box{background:var(--done);border-color:var(--done)}
+.row[aria-pressed="true"] .box svg{opacity:1}
+.row.off{color:var(--muted)}
+.pos{flex:none;width:46px;min-height:54px;border-radius:10px;border:1px solid transparent;color:#fff;font:700 16px var(--display);letter-spacing:.04em;cursor:pointer;padding:0}
+.pos.B{background:var(--pB)} .pos.C{background:var(--pC)} .pos.F{background:var(--pF)} .pos.M{background:var(--pM)}
+.pos.ov{outline:2px dashed var(--fg);outline-offset:-5px}
+.pos:disabled{cursor:default}
+.pos.mini{width:34px;min-height:34px;font-size:14px;border-radius:8px}
+input.slot{flex:none;width:50px;min-height:54px;text-align:center;font:700 21px var(--display);text-transform:uppercase;padding:0}
+input.slot::placeholder{font:500 12px var(--body);color:var(--muted);text-transform:none}
+.x{flex:none;width:40px;min-height:54px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font:600 18px var(--body);cursor:pointer;padding:0}
+.vac{flex:1;min-height:48px;display:flex;align-items:center;padding:0 14px;border:1.5px dashed var(--warn);border-radius:10px;color:var(--warn);font:600 15px var(--body);background:var(--warn-bg)}
+.orow{display:flex;align-items:center;gap:10px;min-height:40px;padding:4px 0;border-bottom:1px solid var(--line)}
+.orow:last-child{border-bottom:0}
+.notice{border-radius:12px;padding:14px 16px;margin-top:14px;border:1px solid var(--line);background:var(--surface)}
+.notice.ok{border-color:transparent;background:var(--done-bg)}
+.notice.warn{border-color:transparent;background:var(--warn-bg)}
+.notice.bad{border-color:transparent;background:var(--bad-bg)}
+.notice p{margin:0;line-height:1.4}
+.notice ul{gap:2px;margin-top:8px;font-size:14px}
+.notice ul li{display:list-item;list-style:disc;margin-left:18px}
+.nhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.nhead strong{font-weight:600}
+.share{margin-top:12px;padding:14px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}
+.share textarea{width:100%;box-sizing:border-box;min-height:64px;font:13px/1.35 ui-monospace,Menlo,monospace;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical;word-break:break-all}
+details.log{margin-top:14px;font-size:14px;color:var(--muted)}
+details.log summary{cursor:pointer;font-weight:600;color:var(--fg)}
+details.log ul{gap:4px;margin-top:6px}
+details.log li{display:list-item;list-style:disc;margin-left:18px}
+.steps{display:flex;gap:8px;margin-top:14px}
+.steps button{flex:1;font:600 15px var(--body);padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.steps button[aria-current="step"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.stats{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-top:12px;font-variant-numeric:tabular-nums}
+.stats b{font-family:var(--display);font-size:22px;color:var(--fg)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;
+  width:min(560px,calc(100% - 32px));background:var(--fg);color:var(--bg);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.25);font-size:15px;line-height:1.35}
+.toast span{flex:1;min-width:0}
+.toast button{font:700 15px var(--body);background:none;border:0;color:var(--bg);text-decoration:underline;cursor:pointer;padding:6px}
+.sheetwrap{position:fixed;inset:0;z-index:30;background:#e9ebee;overflow:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(12px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.sheetbar{display:flex;justify-content:space-between;align-items:center;max-width:620px;margin:0 auto 10px;color:#333;font-size:13px;gap:10px}
+.sheetbar button{font:600 15px var(--body);background:#111;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+.sheet{max-width:620px;margin:0 auto;background:var(--paper);color:var(--ink);padding:22px 18px 14px;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.12);font-family:Helvetica,Arial,sans-serif}
+.sheet .sh{display:flex;justify-content:space-between;gap:6px 14px;align-items:flex-start;flex-wrap:wrap}
+.sheet .st{font-weight:800;font-size:clamp(22px,6vw,30px);margin:0;letter-spacing:.01em}
+.sheet .ss{color:var(--ink-muted);font-size:13px;margin-top:4px}
+.sheet .lg{font-size:11px;font-weight:700;line-height:1.6;white-space:nowrap}
+.sheet .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.sheet .c{border:2px solid var(--cc);border-radius:7px;overflow:hidden;min-width:0}
+.sheet .ch{background:var(--cc);color:#fff;font-weight:800;font-size:clamp(14px,4.2vw,18px);padding:8px 10px;display:flex;justify-content:space-between;align-items:baseline;text-transform:uppercase}
+.sheet .ch small{font-size:9px}
+.sheet .cb{padding:8px 10px 10px}
+.sheet .lab{font-size:9px;font-weight:700;color:var(--ink-muted);text-transform:uppercase;margin-top:6px}
+.sheet .it{display:flex;align-items:center;gap:6px;color:var(--cc);font-size:clamp(12px,3.6vw,15px);margin-top:4px;overflow-wrap:anywhere}
+.sheet .it.muted{color:var(--ink-muted)}
+.sheet .dot{flex:none;width:17px;height:17px;border-radius:50%;background:currentColor;display:grid;place-items:center}
+.sheet .dot i{font-style:normal;color:#fff;font-size:8px;font-weight:700}
+.sheet .ft{color:var(--ink-muted);font-size:10px;margin-top:14px}
+.empty{padding:18px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
+@media (max-width:380px){ .row{gap:8px;padding:8px 10px;font-size:16px} .pos{width:40px} input.slot{width:44px} .x{width:34px} }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top"><h1>Floda Femmor</h1><button type="button" class="who" id="who">Vem är du?</button></div>
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tabP" aria-selected="true">Pass</button>
+      <button type="button" role="tab" id="tabO" aria-selected="false">Optimal <small id="tabOv"></small></button>
+    </div>
+  </header>
+
+  <div class="card" id="nameCard" hidden>
+    <p><strong>Vad heter du?</strong> Namnet står på länkarna du delar, så att de andra ser vem som ändrat.</p>
+    <div class="formrow"><input type="text" id="meInput" maxlength="30" placeholder="t.ex. Jonas" autocomplete="given-name"><button type="button" class="btn primary" id="meSave">Spara</button></div>
+  </div>
+
+  <div id="notices"></div>
+
+  <!-- ========== PASS ========== -->
+  <div id="viewP">
+    <div class="card" id="newCard" hidden>
+      <h2>Nytt pass</h2>
+      <p class="meta" id="newBase"></p>
+      <div class="bar">
+        <div class="seg" role="group" aria-label="Typ av pass">
+          <button type="button" id="nTypT" aria-pressed="true">Träning</button>
+          <button type="button" id="nTypM" aria-pressed="false">Match</button>
+        </div>
+        <input type="date" id="nDate" aria-label="Datum">
+      </div>
+      <div class="bar"><button type="button" class="btn primary" id="nStart">Starta passet</button><button type="button" class="link" id="nCancel" hidden>Avbryt</button></div>
+    </div>
+
+    <div id="sess" hidden>
+      <div class="top" style="margin-top:16px;align-items:flex-start">
+        <div style="min-width:0"><h2 id="sTitle"></h2><p class="meta" id="sMeta"></p></div>
+        <button type="button" class="link" id="sNew">Nytt pass</button>
+      </div>
+      <div class="steps">
+        <button type="button" id="stN">1 · Närvaro</button>
+        <button type="button" id="stF">2 · Femmor</button>
+      </div>
+
+      <div id="viewN">
+        <div class="stats"><span><b id="cField">0</b> utespelare</span><span><b id="cGk">0</b> målvakt</span><span><b id="cK">0</b> femmor räcker</span></div>
+        <div class="bar"><button type="button" class="btn" id="allIn">Alla</button><button type="button" class="btn" id="noneIn">Ingen</button></div>
+        <p class="hint">Bocka i dem som svarat ja i WhatsApp-omröstningen.</p>
+        <div class="grp"><ul id="listN"></ul></div>
+        <div class="grp">
+          <h3><span class="t">Gäster</span><span class="n">Spelare utanför truppen</span></h3>
+          <ul id="listG"></ul>
+          <div class="formrow">
+            <input type="text" id="gName" maxlength="40" placeholder="Namn">
+            <select id="gPos" aria-label="Position"><option value="B">Back</option><option value="C">Center</option><option value="F" selected>Forward</option><option value="M">Målvakt</option></select>
+            <button type="button" class="btn" id="gAdd">Lägg till</button>
+          </div>
+        </div>
+        <div class="bar" style="margin-top:20px"><button type="button" class="btn primary" id="toF">Bygg femmor →</button></div>
+      </div>
+
+      <div id="viewF" hidden>
+        <div id="baseWarn"></div>
+        <details class="log" id="logBox"><summary id="logSum"></summary><ul id="logList"></ul></details>
+        <p class="hint">Tryck på namnet när spelaren ligger på taktiktavlan. Siffran till höger flyttar spelaren (1–4, R = reserv, MV = målvakt). ✕ = återbud, luckan fylls automatiskt.</p>
+        <div id="groups"></div>
+        <div class="bar" style="margin-top:18px">
+          <button type="button" class="btn" id="spread">Fördela reserver i femmorna</button>
+          <span id="rebuildArea"></span>
+        </div>
+        <div class="card">
+          <h2 style="font-size:20px">Dela och skriv ut</h2>
+          <div class="bar">
+            <div class="seg" role="group" aria-label="Västar">
+              <button type="button" id="vsOn" aria-pressed="false">Västar svart/röd</button>
+              <button type="button" id="vsOff" aria-pressed="true">Alla svarta</button>
+            </div>
+          </div>
+          <div class="bar">
+            <button type="button" class="btn primary" id="shareS">Dela länk</button>
+            <button type="button" class="btn" id="pdfBtn" hidden>Spara PDF</button>
+            <button type="button" class="btn" id="sheetBtn">Visa blad</button>
+          </div>
+          <div id="shareSBox"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== OPTIMAL ========== -->
+  <div id="viewO" hidden>
+    <div class="card" style="margin-top:16px">
+      <div class="top" style="align-items:flex-start"><div style="min-width:0"><h2 id="oTitle">Optimal uppställning</h2><p class="meta" id="oMeta"></p></div></div>
+      <p class="hint" id="oHint"></p>
+      <div class="bar" id="oBtns"></div>
+      <div id="shareOBox"></div>
+    </div>
+    <div class="card" id="pasteCard">
+      <p><strong>Har du en länk?</strong> Klistra in en optimal- eller passlänk, även från den gamla claude.ai-versionen.</p>
+      <div class="formrow"><input type="text" id="pasteIn" placeholder="https://…#z…" autocomplete="off"><button type="button" class="btn" id="pasteGo">Öppna</button></div>
+    </div>
+    <div id="oAdd" class="card" hidden>
+      <p><strong>Lägg till spelare i truppen</strong></p>
+      <div class="formrow">
+        <input type="text" id="aName" maxlength="40" placeholder="Namn">
+        <select id="aPos" aria-label="Position"><option value="B">Back</option><option value="C">Center</option><option value="F" selected>Forward</option><option value="M">Målvakt</option></select>
+        <select id="aSlot" aria-label="Plats"><option value="0">Reserv</option><option value="1">Femma 1</option><option value="2">Femma 2</option><option value="3">Femma 3</option><option value="4">Femma 4</option></select>
+        <button type="button" class="btn" id="aAdd">Lägg till</button>
+      </div>
+    </div>
+    <div id="oGroups"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"><span id="toastMsg"></span><button type="button" id="toastUndo" hidden>Ångra</button><button type="button" id="toastX" aria-label="Stäng">✕</button></div>
+<div class="sheetwrap" id="sheetWrap" hidden><div class="sheetbar"><span>Ta en skärmdump och skicka bilden.</span><button type="button" id="sheetClose">Stäng</button></div><div class="sheet" id="sheet"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ===== Floda Femmor – kärna (ingen DOM) ===== */
+const TMPL = {B: 2, C: 1, F: 2};
+const ALT = {B: ["F", "C"], C: ["F", "B"], F: ["C", "B"]};
+const POSN = {B: "back", C: "center", F: "forward", M: "målvakt"};
+const POSL = {B: "Back", C: "Center", F: "Forward", M: "Målvakt"};
+
+const isPos = p => ["B", "C", "F", "M"].includes(p);
+function femmaCount(n) { return n <= 0 ? 0 : n < 5 ? 1 : Math.min(4, Math.floor(n / 5)); }
+function shortName(n) { const p = n.split(" "); return p.length > 1 ? p[0] + " " + p[p.length - 1][0] + "." : n; }
+
+/* base: {f:[[{n,p,o?,vac?}]], r:[{n,p}], g:[{n,p}]}  present: [namn]  extras: [{n,p}] (gäster m.fl.) */
+function build(base, presentArr, extras) {
+  extras = extras || [];
+  const present = new Set(presentArr);
+  const used = new Set();
+  const log = [];
+  const all = [...base.f.flat(), ...base.r, ...base.g, ...extras].filter(e => e && e.n);
+  const goalies = [];
+  all.forEach(e => { if (e.p === "M" && present.has(e.n) && !used.has(e.n)) { used.add(e.n); goalies.push({n: e.n, p: "M"}); } });
+  const fieldSet = new Set(all.filter(e => e.p !== "M" && present.has(e.n)).map(e => e.n));
+  const N = fieldSet.size;
+  const K = femmaCount(N);
+  const baseCount = base.f.filter(fm => fm.some(e => e.n)).length;
+  if (K < baseCount) log.push(`${N} utespelare räcker till ${K} femm${K === 1 ? "a" : "or"} – femma ${K + 1}${baseCount > K + 1 ? "–" + baseCount : ""} bryts upp.`);
+  const take = e => { used.add(e.n); return {n: e.n, p: e.p, o: e.o}; };
+
+  // 1. aktiva femmor: behåll närvarande, skapa luckor för frånvarande
+  const F = [];
+  for (let i = 0; i < K; i++) {
+    const entries = (base.f[i] || []).filter(e => e.vac || e.p !== "M");
+    const items = [];
+    entries.forEach(e => {
+      if (!e.vac && fieldSet.has(e.n)) { if (!used.has(e.n)) items.push({k: "p", e: take(e)}); }
+      else if (e.vac || isPos(e.p)) items.push({k: "a", a: {pos: e.p, missing: e.vac ? null : e.n}});
+    });
+    const kept = items.filter(x => x.k === "p").map(x => x.e);
+    const absent = items.filter(x => x.k === "a").map(x => x.a);
+    const cnt = {B: 0, C: 0, F: 0};
+    kept.forEach(e => cnt[e.p] != null && cnt[e.p]++);
+    // prioritera luckor där positionen saknas, max upp till 5 spelare
+    const sorted = absent.slice().sort((a, b) => ((cnt[a.pos] < TMPL[a.pos]) ? 0 : 1) - ((cnt[b.pos] < TMPL[b.pos]) ? 0 : 1));
+    let need = Math.max(0, 5 - kept.length);
+    const chosen = new Set(sorted.slice(0, need));
+    need -= chosen.size;
+    const slots = items.map(x => x.k === "p" ? x.e : chosen.has(x.a) ? {vac: true, pos: x.a.pos, missing: x.a.missing} : null).filter(Boolean);
+    // ny/kort femma: fyll upp mot 2B 1C 2F
+    if (need > 0) {
+      const c2 = Object.assign({}, cnt); slots.forEach(v => { if (v.vac) c2[v.pos]++; });
+      for (const p of ["B", "C", "F"]) while (need > 0 && c2[p] < TMPL[p]) { slots.push({vac: true, pos: p, missing: null}); c2[p]++; need--; }
+      while (need-- > 0) slots.push({vac: true, pos: "F", missing: null});
+    }
+    F.push(slots);
+  }
+
+  // 2. pool: reserver → övriga/gäster → upplösta femmor
+  const pool = [];
+  const addPool = (e, src) => { if (e && e.n && e.p !== "M" && fieldSet.has(e.n) && !used.has(e.n) && !pool.some(x => x.n === e.n)) pool.push({n: e.n, p: e.p, o: e.o, src}); };
+  base.r.forEach(e => addPool(e, "reserv"));
+  extras.forEach(e => addPool(e, e.src || "gäst"));
+  all.forEach(e => addPool(e, "övrig"));
+  for (let j = K; j < base.f.length; j++) (base.f[j] || []).forEach(e => addPool(e, "femma " + (j + 1)));
+  // all.forEach ovan tar även upplösta femmor; sortera så upplösta kommer efter reserver/gäster
+  const rank = s => s === "reserv" ? 0 : s === "gäst" ? 1 : (s === "övrig" || s === "trupp") ? 2 : 3;
+  const dissolvedOf = n => { for (let j = K; j < base.f.length; j++) if ((base.f[j] || []).some(e => e.n === n)) return j; return -1; };
+  pool.forEach(x => { const j = dissolvedOf(x.n); if (j >= 0) x.src = "femma " + (j + 1); });
+  pool.sort((a, b) => rank(a.src) - rank(b.src));
+
+  const fill = (i, si, e, note) => {
+    used.add(e.n);
+    const v = F[i][si];
+    F[i][si] = {n: e.n, p: v.pos, o: e.p !== v.pos ? (e.o || e.p) : e.o, note};
+    return v;
+  };
+  // 3. exakt position: pool först, sedan längre ner bland aktiva femmor (sist först)
+  for (let i = 0; i < K; i++) {
+    for (let si = 0; si < F[i].length; si++) {
+      const v = F[i][si]; if (!v.vac) continue;
+      const pi = pool.findIndex(x => x.p === v.pos);
+      if (pi >= 0) {
+        const e = pool.splice(pi, 1)[0];
+        fill(i, si, e, v.missing ? "ersätter " + shortName(v.missing) : (e.src === "reserv" ? "reserv" : e.src === "gäst" ? "gäst" : e.src === "trupp" ? "kom till" : "från " + e.src));
+        log.push(`${e.n} (${e.src === "trupp" ? "ny i passet" : e.src}) ${v.missing ? "ersätter " + v.missing : "fyller " + POSN[v.pos] + "platsen"} i femma ${i + 1}.`);
+        continue;
+      }
+      let moved = false;
+      for (let j = K - 1; j > i && !moved; j--) {
+        for (let sj = F[j].length - 1; sj >= 0; sj--) {
+          const e = F[j][sj];
+          if (!e.vac && e.p === v.pos) {
+            F[j][sj] = {vac: true, pos: e.p, missing: e.n, movedUp: true};
+            fill(i, si, e, "upp från femma " + (j + 1));
+            log.push(`${e.n} flyttas upp från femma ${j + 1} till femma ${i + 1}${v.missing ? " (ersätter " + v.missing + ")" : ""}.`);
+            moved = true; break;
+          }
+        }
+      }
+    }
+  }
+  // 4. fel position: närmaste position ur poolen
+  for (let i = 0; i < K; i++) {
+    for (let si = 0; si < F[i].length; si++) {
+      const v = F[i][si]; if (!v.vac) continue;
+      let pi = -1;
+      for (const alt of ALT[v.pos]) { pi = pool.findIndex(x => x.p === alt); if (pi >= 0) break; }
+      if (pi < 0) continue;
+      const e = pool.splice(pi, 1)[0];
+      fill(i, si, e, "ord. " + POSN[e.p]);
+      log.push(`${e.n} spelar ${POSN[v.pos]} i femma ${i + 1} (ordinarie ${POSN[e.p]})${v.missing && !v.movedUp ? ", ersätter " + v.missing : ""}.`);
+    }
+  }
+  F.forEach((fm, i) => fm.forEach(v => { if (v.vac) log.push(`Femma ${i + 1} saknar en ${POSN[v.pos]} – ingen ledig spelare.`); }));
+  const R = pool.map(x => ({n: x.n, p: x.p}));
+  fieldSet.forEach(n => { if (!used.has(n) && !R.some(x => x.n === n)) { const e = all.find(x => x.n === n); R.push({n, p: e.p}); } });
+  return {f: F, r: R, g: goalies, log, K};
+}
+
+function spreadReserves(a) {
+  const moved = [];
+  a.r.filter(e => e.p !== "M").forEach(e => {
+    if (!a.f.length) return;
+    const score = fm => fm.filter(x => !x.vac).length * 10 + fm.filter(x => !x.vac && x.p === e.p).length;
+    let best = 0;
+    a.f.forEach((fm, i) => { if (score(fm) < score(a.f[best])) best = i; });
+    const vi = a.f[best].findIndex(x => x.vac && x.pos === e.p);
+    if (vi >= 0) a.f[best][vi] = {n: e.n, p: e.p}; else a.f[best].push({n: e.n, p: e.p});
+    moved.push(`${e.n} → femma ${best + 1}`);
+  });
+  a.r = a.r.filter(e => e.p === "M");
+  return moved;
+}
+
+function compo(list) {
+  const pl = list.filter(e => !e.vac);
+  const c = {B: 0, C: 0, F: 0};
+  pl.forEach(e => c[e.p] != null && c[e.p]++);
+  const warn = [];
+  if (c.B < 2) warn.push(`${2 - c.B} back`);
+  if (c.C < 1) warn.push("center");
+  if (c.F < 2) warn.push(`${2 - c.F} forward`);
+  if (pl.length < 5 && !warn.length) warn.push(`${5 - pl.length} spelare`);
+  return {n: pl.length, c, warn, txt: `${pl.length} st · ${c.B} B · ${c.C} C · ${c.F} F`};
+}
+
+function optToBase(opt) {
+  const s = opt.s;
+  return {
+    f: [1, 2, 3, 4].map(k => s.filter(x => x.s === k && x.p !== "M").map(x => ({n: x.n, p: x.p}))),
+    r: s.filter(x => (x.s === 0 || x.s > 4) && x.p !== "M").map(x => ({n: x.n, p: x.p})),
+    g: s.filter(x => x.p === "M").map(x => ({n: x.n, p: "M"}))
+  };
+}
+
+/* ---- länkkodning: base64url (+ deflate) – bara tecken som får finnas i en ankarlänk ---- */
+function b64u(bytes) {
+  let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function ub64u(str) {
+  str = str.replace(/-/g, "+").replace(/_/g, "/"); while (str.length % 4) str += "=";
+  const bin = atob(str); const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function streamBytes(bytes, ts) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(ts)).arrayBuffer()); }
+async function encodeToken(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  try { if (typeof CompressionStream === "function") return "z" + b64u(await streamBytes(bytes, new CompressionStream("deflate-raw"))); } catch (e) {}
+  return "j" + b64u(bytes);
+}
+async function decodeToken(t) {
+  const kind = t[0]; let bytes = ub64u(t.slice(1));
+  if (kind === "z") bytes = await streamBytes(bytes, new DecompressionStream("deflate-raw"));
+  else if (kind !== "j") throw new Error("okänd länk");
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+const isName = n => typeof n === "string" && n.trim().length > 0 && n.length <= 60;
+function packOpt(o) { return {k: "o", i: o.i, v: o.v, b: o.b, t: o.t, a: o.a.slice(0, 12), s: o.s.map(x => [x.n, x.p, x.s])}; }
+function unpackOpt(d) {
+  if (!d || d.k !== "o" || !Array.isArray(d.s) || typeof d.i !== "string") return null;
+  const s = d.s.filter(x => Array.isArray(x) && isName(x[0]) && isPos(x[1])).map(x => ({n: x[0].trim(), p: x[1], s: Number.isInteger(x[2]) && x[2] >= 0 && x[2] <= 4 ? x[2] : 0}));
+  return {i: d.i.slice(0, 12), v: Number(d.v) || 0, b: String(d.b || "Okänd").slice(0, 30), t: Number(d.t) || 0, a: Array.isArray(d.a) ? d.a.filter(x => typeof x === "string").slice(0, 12) : [], s};
+}
+function packSess(S) {
+  return {k: "s", b: S.b, t: S.t, y: S.y, d: S.d, vs: S.vs ? 1 : 0, o: S.ob ? [S.ob.i, S.ob.v] : null,
+    f: S.a.f.map(fm => fm.filter(e => !e.vac).map(e => e.o && e.o !== e.p ? [e.n, e.p, e.o] : [e.n, e.p])),
+    r: S.a.r.map(e => [e.n, e.p]), g: S.a.g.map(e => [e.n])};
+}
+function unpackSess(d) {
+  if (!d || d.k !== "s" || !Array.isArray(d.f)) return null;
+  const ent = x => Array.isArray(x) && isName(x[0]) && isPos(x[1]) ? {n: x[0].trim(), p: x[1], o: isPos(x[2]) ? x[2] : undefined} : null;
+  const f = d.f.slice(0, 6).map(fm => (Array.isArray(fm) ? fm : []).map(ent).filter(Boolean));
+  const r = (Array.isArray(d.r) ? d.r : []).map(ent).filter(Boolean);
+  const g = (Array.isArray(d.g) ? d.g : []).filter(x => Array.isArray(x) && isName(x[0])).map(x => ({n: x[0].trim(), p: "M"}));
+  return {b: String(d.b || "Okänd").slice(0, 30), t: Number(d.t) || 0, y: d.y === "M" ? "M" : "T",
+    d: /^\d{4}-\d{2}-\d{2}$/.test(d.d) ? d.d : null, vs: !!d.vs,
+    ob: Array.isArray(d.o) ? {i: String(d.o[0]).slice(0, 12), v: Number(d.o[1]) || 0} : null, a: {f, r, g}};
+}
+
+/* ---- blad (PDF och skärmdumpsvy) ---- */
+const COL = {black: "#111111", red: "#C8102E", purple: "#5B2BB5", grey: "#666666"};
+function sheetData(S, dateLabel) {
+  const order = {B: 0, C: 1, F: 2};
+  const cards = S.a.f.map((fm, i) => {
+    const pl = fm.filter(e => !e.vac).slice().sort((a, b) => order[a.p] - order[b.p]);
+    const color = S.vs && i >= 2 ? COL.red : COL.black;
+    const sections = ["B", "C", "F"].map(p => ({label: POSL[p], items: pl.filter(e => e.p === p).map(e => ({code: p, name: e.n}))})).filter(s => s.items.length);
+    return {title: "Femma " + (i + 1), tag: S.vs ? (i >= 2 ? "RÖD" : "SVART") : "", color, sections};
+  });
+  const extra = [];
+  if (S.a.g.length) extra.push({label: S.a.g.length > 1 ? "Målvakter" : "Målvakt", items: S.a.g.map(e => ({code: "MV", name: e.n}))});
+  if (S.a.r.length) extra.push({label: "Reserver", items: S.a.r.map(e => ({code: e.p === "M" ? "MV" : e.p, name: e.n})), muted: true});
+  if (extra.length) cards.push({title: S.a.g.length ? (S.a.r.length ? "Målvakt & reserver" : "Målvakt") : "Reserver", color: COL.purple, sections: extra});
+  const n = S.a.f.flat().filter(e => !e.vac).length + S.a.g.length + S.a.r.length;
+  const K = S.a.f.length;
+  return {title: (S.y === "M" ? "MATCH" : "TRÄNING") + " HERR 4",
+    sub: `${dateLabel}  ·  ${n} spelare  ·  ${K} femm${K === 1 ? "a" : "or"}${S.a.g.length ? " + målvakt" : ""}`,
+    legend: S.vs ? [["SVART: Femma 1–2", COL.black], ["RÖD: Femma 3–4", COL.red]] : [], cards};
+}
+function drawPdf(doc, data) {
+  const W = 595.28, H = 841.89, m = 44;
+  doc.setFont("helvetica", "bold"); doc.setFontSize(26); doc.setTextColor(COL.black);
+  doc.text(data.title, m, 66);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(COL.grey);
+  doc.text(data.sub, m, 88);
+  data.legend.forEach((l, k) => {
+    doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(l[1]);
+    const tw = doc.getTextWidth(l[0]); doc.text(l[0], W - m, 62 + k * 16, {align: "right"});
+    doc.setFillColor(l[1]); doc.rect(W - m - tw - 12, 62 + k * 16 - 7.5, 8, 8, "F");
+  });
+  const cards = data.cards, rows = Math.ceil(cards.length / 2), gap = 16, top = 112;
+  const cw = (W - 2 * m - gap) / 2;
+  const ch = Math.min(300, (H - top - 50 - gap * (rows - 1)) / rows);
+  cards.forEach((c, i) => {
+    const x = m + (i % 2) * (cw + gap), y = top + Math.floor(i / 2) * (ch + gap);
+    const lines = c.sections.reduce((s, sec) => s + sec.items.length, 0), labels = c.sections.length;
+    const lh = Math.min(22, (ch - 60 - labels * 16) / Math.max(lines, 1));
+    const fs = Math.max(9, Math.min(13.5, lh * 0.62));
+    doc.setDrawColor(c.color); doc.setLineWidth(1.8); doc.roundedRect(x, y, cw, ch, 7, 7, "S");
+    doc.setFillColor(c.color); doc.roundedRect(x, y, cw, 38, 7, 7, "F"); doc.rect(x, y + 28, cw, 10, "F");
+    doc.setTextColor("#FFFFFF"); doc.setFont("helvetica", "bold"); doc.setFontSize(c.title.length > 12 ? 14 : 18);
+    doc.text(c.title.toUpperCase(), x + 12, y + 25);
+    if (c.tag) { doc.setFontSize(9); doc.text(c.tag, x + cw - 12, y + 24, {align: "right"}); }
+    let yy = y + 58;
+    c.sections.forEach((sec, k) => {
+      if (k) yy += 4;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(COL.grey); doc.text(sec.label.toUpperCase(), x + 12, yy); yy += Math.max(12, lh * 0.7);
+      sec.items.forEach(it => {
+        const col = sec.muted ? COL.grey : c.color;
+        doc.setFillColor(col); doc.circle(x + 19, yy - fs * 0.35, Math.min(8, lh * 0.38), "F");
+        doc.setTextColor("#FFFFFF"); doc.setFont("helvetica", "bold"); doc.setFontSize(it.code.length > 1 ? 6 : 7.5);
+        doc.text(it.code, x + 19, yy - fs * 0.35 + 2.5, {align: "center"});
+        doc.setTextColor(col); doc.setFont("helvetica", "normal"); doc.setFontSize(fs);
+        doc.text(it.name, x + 33, yy); yy += lh;
+      });
+    });
+  });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(COL.grey);
+  doc.text("Floda IBK · Floda Femmor", m, H - 28);
+}
+
+if (typeof module !== "undefined") module.exports = {build, spreadReserves, compo, optToBase, encodeToken, decodeToken, packOpt, unpackOpt, packSess, unpackSess, sheetData, drawPdf, femmaCount};
+
+
+/* ================= app ================= */
+const ART_URL = "https://solosolid39.github.io/floda-femmor/";
+const SEED = {i: "seed0", v: 0, b: "Tom", t: 0, a: [], s: []};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const check = '<svg viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+const SHORT = {B: "B", C: "C", F: "F", M: "MV"};
+const now = () => Math.floor(Date.now() / 1000);
+const rid = () => Math.random().toString(36).slice(2, 7);
+const sv = (a, b) => a.localeCompare(b, "sv");
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function dateLabel(d) { if (!d) return ""; return new Date(d + "T12:00:00").toLocaleDateString("sv-SE", {weekday: "short", day: "numeric", month: "short"}).replace(/\./g, ""); }
+function stamp(t) { if (!t) return ""; return new Date(t * 1000).toLocaleString("sv-SE", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}).replace(/\./g, ""); }
+const typName = y => y === "M" ? "Match" : "Träning";
+
+let me = store.get("ff-me") || "";
+let opt = SEED;
+try { const o = store.get("ff-opt"); const u = o && unpackOpt(packOpt(o)); if (u && u.s.length) opt = u; } catch (e) {}
+let S = store.get("ff-sess");
+if (S && (!S.present || !Array.isArray(S.present))) S = null;
+let seen = store.get("ff-seen") || [];
+const ui = {tab: store.get("ff-tab") === "O" ? "O" : "P", draft: null, notices: [], shareS: null, shareO: null, newOpen: false, nTyp: "T", confirmRebuild: false, undo: null, nameOpen: false};
+let downloads = null;
+
+const saveS = () => store.set("ff-sess", S);
+const saveOpt = () => store.set("ff-opt", opt);
+
+/* ---------- toast ---------- */
+let toastTimer = null;
+function toast(msg, undoFn) {
+  $("toastMsg").textContent = msg; $("toast").hidden = false;
+  ui.undo = undoFn || null; $("toastUndo").hidden = !undoFn;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $("toast").hidden = true; ui.undo = null; }, undoFn ? 9000 : 5000);
+}
+$("toastX").onclick = () => { $("toast").hidden = true; ui.undo = null; };
+$("toastUndo").onclick = () => { const f = ui.undo; $("toast").hidden = true; ui.undo = null; if (f) f(); };
+
+/* ---------- notiser ---------- */
+function notice(kind, html, actions, id) {
+  if (id) ui.notices = ui.notices.filter(n => n.id !== id);
+  ui.notices.unshift({kind, html, actions: actions || [], id: id || rid()});
+  renderNotices();
+}
+function renderNotices() {
+  const box = $("notices"); box.replaceChildren();
+  ui.notices.forEach(n => {
+    const d = document.createElement("div"); d.className = "notice " + n.kind;
+    d.innerHTML = `<div class="nhead"><div>${n.html}</div><button type="button" class="link" aria-label="Stäng">✕</button></div>`;
+    d.querySelector(".nhead .link").onclick = () => { ui.notices = ui.notices.filter(x => x !== n); renderNotices(); };
+    if (n.actions.length) {
+      const bar = document.createElement("div"); bar.className = "bar";
+      n.actions.forEach(a => { const b = document.createElement("button"); b.type = "button"; b.className = "btn" + (a.primary ? " primary" : ""); b.textContent = a.label;
+        b.onclick = () => { ui.notices = ui.notices.filter(x => x !== n); a.fn(); renderNotices(); render(); }; bar.append(b); });
+      d.append(bar);
+    }
+    box.append(d);
+  });
+}
+
+/* ---------- dela ---------- */
+function shareBox(target, url, text, extraHint) {
+  const box = $(target); box.replaceChildren();
+  if (!url) return;
+  const d = document.createElement("div"); d.className = "share";
+  const wa = "https://wa.me/?text=" + encodeURIComponent(text + "\n" + url);
+  d.innerHTML = `<p style="margin:0 0 8px;font-size:14px"><strong>Länken är klar.</strong> ${extraHint || ""}</p>
+    <textarea readonly id="${target}Url" aria-label="Länk">${esc(url)}</textarea>
+    <div class="bar"><button type="button" class="btn" id="${target}Copy">Kopiera länk</button>
+    <a class="btn wa" href="${esc(wa)}" target="_blank" rel="noopener">Skicka i WhatsApp</a></div>`;
+  box.append(d);
+  $(target + "Copy").onclick = () => {
+    const ta = $(target + "Url");
+    const fallback = () => { ta.focus(); ta.select(); toast("Markera länken och kopiera den."); };
+    try { navigator.clipboard.writeText(url).then(() => toast("Länken är kopierad."), fallback); } catch (e) { fallback(); }
+  };
+}
+async function linkFor(obj) { return ART_URL + "#" + await encodeToken(obj); }
+
+/* ---------- namn ---------- */
+function saveMe() {
+  const v = $("meInput").value.trim().slice(0, 30);
+  if (!v) { toast("Skriv ditt namn först."); return; }
+  me = v; store.set("ff-me", me); ui.nameOpen = false; render(); toast(`Hej ${me}! Namnet står på det du delar.`);
+}
+$("meSave").onclick = saveMe;
+$("meInput").addEventListener("keydown", e => { if (e.key === "Enter") saveMe(); });
+$("who").onclick = () => { ui.nameOpen = !ui.nameOpen; $("meInput").value = me; render(); if (ui.nameOpen) $("meInput").focus(); };
+const author = () => me || "Okänd";
+
+/* ================= PASS ================= */
+const squadPos = n => { const x = opt.s.find(e => e.n === n); return x ? x.p : null; };
+const fieldPos = n => { const p = squadPos(n) || (S && (S.guests.find(g => g.n === n) || {}).p); return p && p !== "M" ? p : "F"; };
+const sig = () => JSON.stringify([S.present.slice().sort(sv), S.guests.map(g => g.n + g.p)]);
+const allEntries = () => S.a ? [...S.a.f.flat().filter(e => !e.vac), ...S.a.r, ...S.a.g] : [];
+
+function startSession(y, d) {
+  S = {y, d: d || today(), present: [], guests: [], a: null, placed: [], vs: y === "T", step: "N", ob: {i: opt.i, v: opt.v}, b: null, t: null, from: null, built: null, log: []};
+  ui.shareS = null; ui.newOpen = false; ui.confirmRebuild = false; saveS(); render();
+}
+function buildFromOpt() {
+  const r = build(optToBase(opt), S.present, S.guests.map(g => ({n: g.n, p: g.p, src: "gäst"})));
+  S.a = {f: r.f, r: r.r, g: r.g}; S.log = r.log; S.ob = {i: opt.i, v: opt.v}; S.built = sig(); S.placed = []; ui.shareS = null;
+}
+function rebuildIncremental() {
+  const ob = optToBase(opt);
+  const inCur = new Set(allEntries().map(e => e.n));
+  const fieldN = new Set(S.present.filter(n => { const e = allEntries().find(x => x.n === n) || opt.s.find(x => x.n === n) || S.guests.find(x => x.n === n); return e && e.p !== "M"; })).size;
+  const grow = femmaCount(fieldN) > S.a.f.length;
+  const base = {f: grow ? S.a.f.concat(ob.f.slice(S.a.f.length).map(fm => fm.filter(e => !inCur.has(e.n)))) : S.a.f, r: S.a.r, g: S.a.g};
+  const extras = S.guests.filter(g => !inCur.has(g.n)).map(g => ({n: g.n, p: g.p, src: "gäst"}))
+    .concat(opt.s.filter(x => !inCur.has(x.n)).map(x => ({n: x.n, p: x.p, src: "trupp"})));
+  const r = build(base, S.present, extras);
+  S.a = {f: r.f, r: r.r, g: r.g}; S.log = r.log; S.built = sig(); ui.shareS = null;
+  const names = new Set(allEntries().map(e => e.n)); S.placed = S.placed.filter(n => names.has(n));
+  return r.log;
+}
+function goF() {
+  if (!S.present.length) { toast("Bocka i närvaron först."); return; }
+  if (!S.a) buildFromOpt(); else if (S.built !== sig()) rebuildIncremental();
+  S.step = "F"; saveS(); render();
+}
+function dropout(n) {
+  const snap = JSON.stringify(S);
+  S.present = S.present.filter(x => x !== n);
+  const log = rebuildIncremental(); saveS(); render();
+  toast(`${n} har lämnat återbud. ${log.length ? log.join(" ") : "Ingen lucka att fylla."}`, () => { S = JSON.parse(snap); saveS(); render(); });
+}
+function findEntry(n) {
+  for (const fm of S.a.f) { const i = fm.findIndex(e => !e.vac && e.n === n); if (i >= 0) return {list: fm, i}; }
+  for (const k of ["r", "g"]) { const i = S.a[k].findIndex(e => e.n === n); if (i >= 0) return {list: S.a[k], i}; }
+  return null;
+}
+function moveTo(n, raw) {
+  const val = String(raw || "").trim().toUpperCase().replace("MÅ", "M");
+  const ok = /^[1-4]$/.test(val) || ["R", "", "0", "MV", "M"].includes(val);
+  if (!ok) { toast("Skriv 1–4 för femma, R för reserv eller MV för målvakt."); render(); return; }
+  const loc = findEntry(n); if (!loc) return;
+  const e = loc.list.splice(loc.i, 1)[0];
+  if (val === "MV" || val === "M") { if (e.p !== "M") e.o = e.o || e.p; S.a.g.push({n, p: "M"}); }
+  else {
+    if (e.p === "M") { e.p = fieldPos(n); delete e.o; }
+    if (val === "R" || val === "" || val === "0") S.a.r.push({n, p: e.p, o: e.o});
+    else {
+      const k = +val; while (S.a.f.length < k) S.a.f.push([]);
+      const fm = S.a.f[k - 1]; const vi = fm.findIndex(x => x.vac && x.pos === e.p);
+      const ent = {n, p: e.p, o: e.o};
+      if (vi >= 0) fm[vi] = ent; else fm.push(ent);
+    }
+  }
+  while (S.a.f.length && !S.a.f[S.a.f.length - 1].some(x => !x.vac)) S.a.f.pop();
+  ui.shareS = null; saveS(); render();
+}
+function cyclePos(n) {
+  const loc = findEntry(n); if (!loc) return;
+  const e = loc.list[loc.i]; if (e.p === "M") return;
+  const nx = {B: "C", C: "F", F: "B"}[e.p];
+  if (!e.o) e.o = e.p;
+  e.p = nx; if (e.o === e.p) delete e.o;
+  ui.shareS = null; saveS(); render();
+}
+
+/* ---------- render: pass ---------- */
+function renderNew() {
+  $("newCard").hidden = !(!S || ui.newOpen);
+  $("sess").hidden = !S || ui.newOpen;
+  $("nCancel").hidden = !S;
+  $("nTypT").setAttribute("aria-pressed", ui.nTyp === "T"); $("nTypM").setAttribute("aria-pressed", ui.nTyp === "M");
+  if (!$("nDate").value) $("nDate").value = today();
+  $("newBase").textContent = `Femmorna utgår från optimal ${opt.v ? "v" + opt.v + " (" + opt.b + ", " + stamp(opt.t) + ")" : "– utkastet"}. Du bockar närvaro, appen fyller luckorna.`;
+}
+function renderSessHead() {
+  $("sTitle").textContent = `${typName(S.y)} · ${dateLabel(S.d)}`;
+  const bits = [];
+  if (S.from) bits.push(`Från ${S.from} · ${stamp(S.t)}`);
+  else if (S.t) bits.push(`Senast delad av dig · ${stamp(S.t)}`);
+  if (S.ob) bits.push(`Optimal v${S.ob.v}`);
+  $("sMeta").textContent = bits.join(" · ");
+  $("stN").setAttribute("aria-current", S.step === "N" ? "step" : "false");
+  $("stF").setAttribute("aria-current", S.step === "F" ? "step" : "false");
+  $("viewN").hidden = S.step !== "N"; $("viewF").hidden = S.step !== "F";
+}
+function renderN() {
+  const pres = new Set(S.present);
+  const all = opt.s.map(x => ({n: x.n, p: x.p, s: x.s, g: false})).concat(S.guests.map(g => ({n: g.n, p: g.p, s: null, g: true})));
+  const field = all.filter(x => pres.has(x.n) && x.p !== "M").length, gk = all.filter(x => pres.has(x.n) && x.p === "M").length;
+  $("cField").textContent = field; $("cGk").textContent = gk; $("cK").textContent = femmaCount(field);
+  const ul = $("listN"); ul.replaceChildren();
+  if (!opt.s.length) ul.innerHTML = `<li><div class="empty" style="flex:1">Truppen är tom. Öppna optimal-länken från WhatsApp-gruppen, eller lägg till spelare under fliken Optimal.</div></li>`;
+  opt.s.slice().sort((a, b) => sv(a.n, b.n)).forEach(x => {
+    const li = document.createElement("li"); const on = pres.has(x.n);
+    const where = x.p === "M" ? "Målvakt" : `${POSL[x.p]} · ${x.s ? "Femma " + x.s : "Reserv"}`;
+    li.innerHTML = `<button type="button" class="row${on ? "" : " off"}" aria-pressed="${on}"><span class="box">${check}</span><span class="name">${esc(x.n)}<span class="sub">${where}</span></span></button>`;
+    li.firstChild.onclick = () => { on ? S.present = S.present.filter(n => n !== x.n) : S.present.push(x.n); saveS(); renderN(); };
+    ul.append(li);
+  });
+  const ug = $("listG"); ug.replaceChildren();
+  if (!S.guests.length) ug.innerHTML = `<li><div class="empty" style="flex:1">Inga gäster. Lägg till någon som inte finns i truppen.</div></li>`;
+  S.guests.forEach(g => {
+    const li = document.createElement("li"); const on = pres.has(g.n);
+    li.innerHTML = `<button type="button" class="row${on ? "" : " off"}" aria-pressed="${on}"><span class="box">${check}</span><span class="name">${esc(g.n)}<span class="sub">Gäst · ${POSL[g.p]}</span></span></button><button type="button" class="x" aria-label="Ta bort ${esc(g.n)}">✕</button>`;
+    li.children[0].onclick = () => { on ? S.present = S.present.filter(n => n !== g.n) : S.present.push(g.n); saveS(); renderN(); };
+    li.children[1].onclick = () => { S.guests = S.guests.filter(x => x !== g); S.present = S.present.filter(n => n !== g.n); saveS(); renderN(); };
+    ug.append(li);
+  });
+}
+function addGuest() {
+  const n = $("gName").value.trim().replace(/\s+/g, " ").slice(0, 40), p = $("gPos").value;
+  if (!n) { toast("Skriv gästens namn."); return; }
+  const lower = n.toLowerCase();
+  if (opt.s.some(x => x.n.toLowerCase() === lower) || S.guests.some(g => g.n.toLowerCase() === lower)) { toast(`${n} finns redan i listan.`); return; }
+  S.guests.push({n, p}); S.present.push(n); $("gName").value = ""; saveS(); renderN();
+}
+function rowF(e, femmaIdx) {
+  const li = document.createElement("li");
+  const placed = S.placed.includes(e.n);
+  const subs = [];
+  if (e.o && e.o !== e.p) subs.push(`<span class="sub note">Spelar ${POSN[e.p]} · ord. ${POSN[e.o]}</span>`);
+  else if (e.note) subs.push(`<span class="sub">${esc(e.note)}</span>`);
+  if (S.guests.some(g => g.n === e.n)) subs.push(`<span class="sub">Gäst</span>`);
+  const slotVal = e.p === "M" ? "MV" : femmaIdx == null ? "R" : String(femmaIdx + 1);
+  li.innerHTML = `<button type="button" class="row" aria-pressed="${placed}"><span class="box">${check}</span><span class="name">${esc(e.n)}${subs.join("")}</span></button>` +
+    `<button type="button" class="pos ${e.p}${e.o && e.o !== e.p ? " ov" : ""}" ${e.p === "M" ? "disabled" : ""} aria-label="Position ${POSL[e.p]}. Tryck för att byta.">${SHORT[e.p]}</button>` +
+    `<input type="text" class="slot" maxlength="2" value="${slotVal}" aria-label="Femma för ${esc(e.n)}" autocomplete="off">` +
+    `<button type="button" class="x" aria-label="Återbud ${esc(e.n)}">✕</button>`;
+  const [row, pos, inp, x] = li.children;
+  inp.id = "slot-" + e.n.normalize("NFD").replace(/[^\w]+/g, "-");
+  row.onclick = () => { placed ? S.placed = S.placed.filter(n => n !== e.n) : S.placed.push(e.n); saveS(); render(); };
+  pos.onclick = () => cyclePos(e.n);
+  inp.addEventListener("focus", () => inp.select());
+  inp.addEventListener("keydown", ev => { if (ev.key === "Enter") inp.blur(); });
+  inp.addEventListener("change", () => moveTo(e.n, inp.value));
+  x.onclick = () => dropout(e.n);
+  return li;
+}
+function renderF() {
+  const behind = S.ob && S.ob.i !== opt.i;
+  $("baseWarn").innerHTML = behind ? `<div class="notice warn"><p>Femmorna bygger på optimal v${S.ob.v}, men du har nu v${opt.v}. Bygg om om du vill utgå från den nya.</p></div>` : "";
+  $("logBox").hidden = !S.log || !S.log.length;
+  if (S.log && S.log.length) {
+    $("logSum").textContent = `${S.log.length} ändring${S.log.length > 1 ? "ar" : ""} mot optimal`;
+    $("logList").innerHTML = S.log.map(l => `<li>${esc(l)}</li>`).join("");
+  }
+  const g = $("groups"); g.replaceChildren();
+  S.a.f.forEach((fm, i) => {
+    const c = compo(fm);
+    const sec = document.createElement("section"); sec.className = "grp";
+    sec.innerHTML = `<h3><span class="t">Femma ${i + 1}${S.vs ? ` <small style="font:600 12px var(--body);color:${i >= 2 ? "var(--bad)" : "var(--muted)"}">${i >= 2 ? "RÖD" : "SVART"}</small>` : ""}</span><span class="n${c.warn.length ? " warn" : ""}">${c.txt}${c.warn.length ? " · saknar " + c.warn.join(", ") : ""}</span></h3>`;
+    const ul = document.createElement("ul");
+    fm.forEach(e => {
+      if (e.vac) { const li = document.createElement("li"); li.innerHTML = `<div class="vac">Lucka: ${POSN[e.pos]} saknas${e.missing ? " (" + esc(e.missing) + ")" : ""}</div>`; ul.append(li); }
+      else ul.append(rowF(e, i));
+    });
+    sec.append(ul); g.append(sec);
+  });
+  if (!S.a.f.length) g.innerHTML = `<div class="empty grp">För få utespelare för en femma. Bocka i fler under Närvaro.</div>`;
+  const field = S.a.r.filter(e => e.p !== "M");
+  [["Reserver", field, "Spelare utanför femmorna"], ["Målvakter", S.a.g, ""]].forEach(([t, list, hint]) => {
+    if (!list.length) return;
+    const sec = document.createElement("section"); sec.className = "grp quiet";
+    sec.innerHTML = `<h3><span class="t">${t}</span><span class="n">${list.length} st${hint ? " · " + hint : ""}</span></h3>`;
+    const ul = document.createElement("ul"); list.forEach(e => ul.append(rowF(e, null))); sec.append(ul); g.append(sec);
+  });
+  $("spread").hidden = !field.length || !S.a.f.length;
+  const ra = $("rebuildArea");
+  if (ui.confirmRebuild) {
+    ra.innerHTML = `<span style="font-size:14px">Dina ändringar försvinner.</span> <button type="button" class="btn danger" id="rbYes">Bygg om</button> <button type="button" class="link" id="rbNo">Avbryt</button>`;
+    $("rbYes").onclick = () => { ui.confirmRebuild = false; buildFromOpt(); saveS(); render(); toast("Femmorna är byggda om från optimal."); };
+    $("rbNo").onclick = () => { ui.confirmRebuild = false; render(); };
+  } else {
+    ra.innerHTML = `<button type="button" class="btn" id="rbAsk">Bygg om från optimal</button>`;
+    $("rbAsk").onclick = () => { ui.confirmRebuild = true; render(); };
+  }
+  $("vsOn").setAttribute("aria-pressed", !!S.vs); $("vsOff").setAttribute("aria-pressed", !S.vs);
+  $("pdfBtn").hidden = false;
+  if (!ui.shareS) $("shareSBox").replaceChildren();
+}
+
+/* ================= OPTIMAL ================= */
+const groupsOf = s => ({
+  f: [1, 2, 3, 4].map(k => s.filter(x => x.s === k && x.p !== "M")),
+  r: s.filter(x => (x.s === 0 || x.s > 4) && x.p !== "M"),
+  g: s.filter(x => x.p === "M")
+});
+function renderO() {
+  $("tabOv").textContent = opt.v ? "v" + opt.v : (opt.s.length ? "utkast" : "tom");
+  const editing = !!ui.draft;
+  $("oTitle").textContent = editing ? `Redigerar → v${opt.v + 1}` : "Optimal uppställning";
+  $("oMeta").textContent = opt.v ? `v${opt.v} · ${opt.b} · ${stamp(opt.t)}` : (opt.s.length ? "Inte sparad som version än." : "Ingen trupp än. Klistra in en optimal-länk nedan, eller tryck Redigera och lägg till spelare.");
+  $("oHint").textContent = editing
+    ? "Tryck på positionen för att byta (B → C → F → MV). Siffran flyttar spelaren (1–4 eller R). ✕ tar bort spelaren ur truppen."
+    : "Den här är startpunkten för varje pass. När någon ändrar den: spara, dela och fäst länken i WhatsApp-gruppen.";
+  const b = $("oBtns"); b.replaceChildren();
+  const mk = (label, cls, fn) => { const x = document.createElement("button"); x.type = "button"; x.className = "btn " + cls; x.textContent = label; x.onclick = fn; b.append(x); };
+  if (editing) {
+    mk(`Spara som v${opt.v + 1} och dela`, "primary", saveDraft);
+    mk("Avbryt", "", () => { ui.draft = null; render(); });
+  } else {
+    mk("Redigera", "primary", () => { ui.draft = opt.s.map(x => Object.assign({}, x)); ui.shareO = null; $("shareOBox").replaceChildren(); render(); });
+    mk("Dela optimal", "", async () => { const url = await linkFor(packOpt(opt)); shareBox("shareOBox", url, `Optimal femmor v${opt.v} (${opt.b}) – öppna länken så sparas den hos dig:`, "Fäst meddelandet i gruppen så alla vet vilken som gäller."); });
+  }
+  $("oAdd").hidden = !editing;
+  const s = editing ? ui.draft : opt.s;
+  const G = groupsOf(s);
+  const box = $("oGroups"); box.replaceChildren();
+  const sections = G.f.map((l, i) => ["Femma " + (i + 1), l, true]).concat([["Reserver", G.r, false], ["Målvakter", G.g, false]]);
+  sections.forEach(([t, list, isF]) => {
+    const sec = document.createElement("section"); sec.className = "grp" + (isF ? "" : " quiet");
+    const c = compo(list.map(x => ({n: x.n, p: x.p})));
+    sec.innerHTML = `<h3><span class="t">${t}</span><span class="n${isF && c.warn.length ? " warn" : ""}">${isF ? c.txt + (c.warn.length ? " · saknar " + c.warn.join(", ") : "") : list.length + " st"}</span></h3>`;
+    if (!editing) {
+      const card = document.createElement("div"); card.className = "card"; card.style.marginTop = "0"; card.style.padding = "4px 14px";
+      card.innerHTML = list.length ? list.map(x => `<div class="orow"><span class="pos mini ${x.p}" aria-hidden="true" style="display:grid;place-items:center">${SHORT[x.p]}</span><span class="name">${esc(x.n)}</span></div>`).join("") : `<div class="orow" style="color:var(--muted)">Tom</div>`;
+      sec.append(card);
+    } else {
+      const ul = document.createElement("ul");
+      if (!list.length) ul.innerHTML = `<li><div class="empty" style="flex:1">Tom – skriv ${t.startsWith("Femma") ? t.slice(-1) : "R"} vid en spelare för att flytta hit.</div></li>`;
+      list.forEach(x => ul.append(rowO(x)));
+      sec.append(ul);
+    }
+    box.append(sec);
+  });
+}
+function rowO(x) {
+  const li = document.createElement("li");
+  li.innerHTML = `<div class="row static"><span class="name">${esc(x.n)}</span></div>` +
+    `<button type="button" class="pos ${x.p}" aria-label="Position ${POSL[x.p]}. Tryck för att byta.">${SHORT[x.p]}</button>` +
+    `<input type="text" class="slot" maxlength="1" value="${x.p === "M" ? "MV" : x.s ? x.s : "R"}" ${x.p === "M" ? "disabled" : ""} aria-label="Plats för ${esc(x.n)}" autocomplete="off">` +
+    `<button type="button" class="x" aria-label="Ta bort ${esc(x.n)} ur truppen">✕</button>`;
+  const [, pos, inp, del] = li.children;
+  inp.id = "oslot-" + x.n.normalize("NFD").replace(/[^\w]+/g, "-");
+  pos.onclick = () => { const nx = {B: "C", C: "F", F: "M", M: "B"}[x.p]; x.p = nx; if (nx === "M") x.s = 0; render(); };
+  inp.addEventListener("focus", () => inp.select());
+  inp.addEventListener("keydown", ev => { if (ev.key === "Enter") inp.blur(); });
+  inp.addEventListener("change", () => {
+    const v = inp.value.trim().toUpperCase();
+    if (/^[1-4]$/.test(v)) x.s = +v; else if (v === "R" || v === "0" || v === "") x.s = 0;
+    else { toast("Skriv 1–4 för femma eller R för reserv."); }
+    // flytta sist i den nya gruppen
+    const i = ui.draft.indexOf(x); ui.draft.splice(i, 1); ui.draft.push(x);
+    render();
+  });
+  del.onclick = () => {
+    const i = ui.draft.indexOf(x); ui.draft.splice(i, 1); render();
+    toast(`${x.n} är borttagen ur truppen (sparas när du sparar versionen).`, () => { ui.draft.splice(i, 0, x); render(); });
+  };
+  return li;
+}
+function addPlayer() {
+  const n = $("aName").value.trim().replace(/\s+/g, " ").slice(0, 40);
+  if (!n) { toast("Skriv spelarens namn."); return; }
+  if (ui.draft.some(x => x.n.toLowerCase() === n.toLowerCase())) { toast(`${n} finns redan i truppen.`); return; }
+  const p = $("aPos").value; const s = p === "M" ? 0 : +$("aSlot").value;
+  ui.draft.push({n, p, s}); $("aName").value = ""; render(); toast(`${n} är tillagd. Spara versionen när du är klar.`);
+}
+async function saveDraft() {
+  if (!me) { ui.nameOpen = true; render(); toast("Skriv ditt namn först, det står på versionen."); $("meInput").focus(); return; }
+  if (!ui.draft.some(x => x.p !== "M")) { toast("Truppen är tom."); return; }
+  const newOpt = {i: rid(), v: opt.v + 1, b: me, t: now(), a: [opt.i].concat(opt.a).slice(0, 12), s: ui.draft.map(x => ({n: x.n, p: x.p, s: x.p === "M" ? 0 : x.s}))};
+  opt = newOpt; ui.draft = null; saveOpt(); render();
+  const url = await linkFor(packOpt(opt));
+  shareBox("shareOBox", url, `Ny optimal femmor v${opt.v} (${opt.b}) – öppna länken så sparas den hos dig:`, `Skicka den och fäst meddelandet i gruppen. Äldre versioner gäller inte längre.`);
+  toast(`Optimal v${opt.v} är sparad.`);
+}
+$("aAdd").onclick = addPlayer;
+$("pasteGo").onclick = () => { const v = $("pasteIn").value.trim(); const t = v.includes("#") ? v.split("#").pop() : v; $("pasteIn").value = ""; handleToken(t, true); };
+$("aName").addEventListener("keydown", e => { if (e.key === "Enter") addPlayer(); });
+
+/* ================= inkommande länkar ================= */
+function slotLabel(x) { return x.p === "M" ? "MV" : x.s ? `F${x.s} ${x.p}` : `Reserv ${x.p}`; }
+function diffOpt(a, b) {
+  const A = new Map(a.s.map(x => [x.n, x])), B = new Map(b.s.map(x => [x.n, x]));
+  const out = [];
+  B.forEach((x, n) => { const y = A.get(n); if (!y) out.push(`Ny: ${n} (${slotLabel(x)})`); else if (slotLabel(x) !== slotLabel(y)) out.push(`${n}: ${slotLabel(y)} → ${slotLabel(x)}`); });
+  A.forEach((y, n) => { if (!B.has(n)) out.push(`Borttagen: ${n}`); });
+  return out;
+}
+function diffHtml(list) { if (!list.length) return "<p class=\"meta\">Ingen skillnad i uppställningen.</p>"; const sh = list.slice(0, 10); return `<ul>${sh.map(l => `<li>${esc(l)}</li>`).join("")}${list.length > 10 ? `<li>…och ${list.length - 10} till</li>` : ""}</ul>`; }
+function adopt(chosen, other) {
+  opt = {i: rid(), v: Math.max(chosen.v, other.v) + 1, b: author(), t: now(),
+    a: [...new Set([chosen.i, other.i, ...chosen.a, ...other.a])].slice(0, 12), s: chosen.s.map(x => Object.assign({}, x))};
+  saveOpt(); ui.tab = "O"; store.set("ff-tab", "O"); render();
+  linkFor(packOpt(opt)).then(url => shareBox("shareOBox", url, `Optimal femmor v${opt.v} (${opt.b}) – den här gäller nu:`, "Dela den och fäst i gruppen, så hamnar alla på samma version."));
+}
+function incomingOpt(inc) {
+  if (!inc || !inc.s.length) { notice("bad", "<p>Länken innehåller ingen trupp.</p>"); return; }
+  if (inc.i === opt.i) { notice("ok", `<p>Du har redan optimal v${inc.v} från ${esc(inc.b)}.</p>`, [], "opt"); return; }
+  if (opt.i === "seed0" || inc.a.includes(opt.i)) {
+    const d = diffOpt(opt, inc);
+    opt = inc; saveOpt(); ui.tab = "O"; store.set("ff-tab", "O");
+    notice("ok", `<p><strong>${inc.v ? "Optimal v" + inc.v + " från " + esc(inc.b) + " är sparad" : "Utkastet är sparat"}</strong> som din startpunkt.</p>${inc.v ? diffHtml(d) : `<p class="meta">${inc.s.length} spelare i truppen.</p>`}`, [], "opt");
+    return;
+  }
+  if (opt.a.includes(inc.i)) {
+    notice("warn", `<p><strong>Länken är en äldre version</strong> (v${inc.v}, ${esc(inc.b)}). Du har v${opt.v} från ${esc(opt.b)}, och den behålls.</p>`,
+      [{label: "Använd den äldre ändå", fn: () => adopt(inc, opt)}], "opt");
+    return;
+  }
+  notice("warn", `<p><strong>Två olika optimala uppställningar.</strong> Din: v${opt.v} från ${esc(opt.b)} (${stamp(opt.t)}). Länken: v${inc.v} från ${esc(inc.b)} (${stamp(inc.t)}). Skillnad i länken jämfört med din:</p>${diffHtml(diffOpt(opt, inc))}<p class="meta" style="margin-top:8px">Välj en. Den du väljer blir en ny version som du delar och fäster i gruppen.</p>`,
+    [{label: "Behåll min", fn: () => adopt(opt, inc), primary: true}, {label: `Använd ${inc.b}s`, fn: () => adopt(inc, opt)}], "opt");
+}
+function sessFromIncoming(inc) {
+  const names = [...inc.a.f.flat(), ...inc.a.r, ...inc.a.g].map(e => e.n);
+  const guests = [...inc.a.f.flat(), ...inc.a.r, ...inc.a.g].filter(e => !opt.s.some(x => x.n === e.n)).map(e => ({n: e.n, p: e.p === "M" ? "M" : (e.o || e.p)}));
+  return {y: inc.y, d: inc.d || today(), present: [...new Set(names)], guests, a: inc.a, placed: [], vs: inc.vs, step: "F", ob: inc.ob, b: inc.b, t: inc.t, from: inc.b, built: null, log: []};
+}
+function incomingSess(inc) {
+  if (!inc) { notice("bad", "<p>Länken gick inte att läsa som en uppställning.</p>"); return; }
+  const apply = () => {
+    S = sessFromIncoming(inc); S.built = sig(); ui.newOpen = false; ui.shareS = null; ui.tab = "P"; store.set("ff-tab", "P"); saveS(); render();
+    const extra = inc.ob && inc.ob.i !== opt.i ? ` Den bygger på optimal v${inc.ob.v}, du har v${opt.v}.` : "";
+    notice("ok", `<p><strong>${esc(typName(inc.y))} ${esc(dateLabel(inc.d))} från ${esc(inc.b)}</strong> (${stamp(inc.t)}) är öppnad.${extra} Ändra och dela tillbaka om du vill.</p>`, [], "sess");
+  };
+  if (S && S.from === inc.b && S.t === inc.t) return;
+  const hasOwn = S && (S.present.length || S.a);
+  if (hasOwn) {
+    notice("warn", `<p><strong>${esc(inc.b)} har delat ${esc(typName(inc.y).toLowerCase())} ${esc(dateLabel(inc.d))}</strong> (${stamp(inc.t)}). Du har redan ett pågående pass: ${esc(typName(S.y).toLowerCase())} ${esc(dateLabel(S.d))}.</p>`,
+      [{label: `Öppna ${inc.b}s`, fn: apply, primary: true}, {label: "Behåll mitt", fn: () => {}}], "sess");
+  } else apply();
+}
+async function handleHash() { await handleToken(location.hash.slice(1), false); }
+async function handleToken(t, manual) {
+  if (!/^[zj][A-Za-z0-9_-]{8,}$/.test(t)) { if (manual) toast("Det där ser inte ut som en Floda Femmor-länk."); return; }
+  if (seen.includes(t) && !manual) return;
+  let d;
+  try { d = await decodeToken(t); } catch (e) { notice("bad", "<p>Länken gick inte att läsa. Den kan ha klippts av – be om en ny.</p>"); return; }
+  seen = [t].concat(seen).slice(0, 40); store.set("ff-seen", seen);
+  if (d && d.k === "o") incomingOpt(unpackOpt(d));
+  else if (d && d.k === "s") incomingSess(unpackSess(d));
+  else notice("bad", "<p>Länken känns inte igen.</p>");
+  render();
+}
+
+/* ================= blad och PDF ================= */
+function renderSheet() {
+  const data = sheetData(S, dateLabel(S.d));
+  const card = c => `<div class="c" style="--cc:${c.color}"><div class="ch"><span>${esc(c.title)}</span>${c.tag ? `<small>${c.tag}</small>` : ""}</div><div class="cb">${
+    c.sections.map(s => `<div class="lab">${esc(s.label)}</div>${s.items.map(it => `<div class="it${s.muted ? " muted" : ""}"><span class="dot"><i>${it.code}</i></span><span>${esc(it.name)}</span></div>`).join("")}`).join("")}</div></div>`;
+  $("sheet").innerHTML = `<div class="sh"><div><p class="st">${esc(data.title)}</p><div class="ss">${esc(data.sub)}</div></div>${data.legend.length ? `<div class="lg">${data.legend.map(l => `<div style="color:${l[1]}">■ ${esc(l[0])}</div>`).join("")}</div>` : ""}</div><div class="grid">${data.cards.map(card).join("")}</div><div class="ft">Floda IBK · Floda Femmor</div>`;
+  $("sheetWrap").hidden = false;
+}
+$("sheetBtn").onclick = renderSheet;
+$("sheetClose").onclick = () => { $("sheetWrap").hidden = true; };
+$("pdfBtn").onclick = async () => {
+  if (!window.jspdf || !window.jspdf.jsPDF) { toast("PDF-verktyget har inte laddats. Kontrollera nätet och ladda om sidan, eller använd Visa blad."); return; }
+  const doc = new window.jspdf.jsPDF({unit: "pt", format: "a4"});
+  drawPdf(doc, sheetData(S, dateLabel(S.d)));
+  try { doc.save(`${S.y === "M" ? "Match" : "Traning"}_herr4_${S.d}.pdf`); }
+  catch (e) { toast("PDF:en gick inte att skapa. Använd Visa blad och ta en skärmdump."); }
+};
+
+/* ================= knappar ================= */
+$("tabP").onclick = () => { ui.tab = "P"; store.set("ff-tab", "P"); render(); };
+$("tabO").onclick = () => { ui.tab = "O"; store.set("ff-tab", "O"); render(); };
+$("nTypT").onclick = () => { ui.nTyp = "T"; render(); };
+$("nTypM").onclick = () => { ui.nTyp = "M"; render(); };
+$("nStart").onclick = () => { startSession(ui.nTyp, $("nDate").value || today()); };
+$("nCancel").onclick = () => { ui.newOpen = false; render(); };
+$("sNew").onclick = () => { ui.newOpen = true; ui.nTyp = S ? S.y : "T"; $("nDate").value = today(); render(); };
+$("stN").onclick = () => { S.step = "N"; saveS(); render(); };
+$("stF").onclick = goF;
+$("toF").onclick = goF;
+$("allIn").onclick = () => { S.present = [...new Set(opt.s.map(x => x.n).concat(S.guests.map(g => g.n)))]; saveS(); renderN(); };
+$("noneIn").onclick = () => { S.present = []; saveS(); renderN(); };
+$("gAdd").onclick = addGuest;
+$("gName").addEventListener("keydown", e => { if (e.key === "Enter") addGuest(); });
+$("spread").onclick = () => {
+  const snap = JSON.stringify(S); const m = spreadReserves(S.a); ui.shareS = null; saveS(); render();
+  toast(m.length ? "Reserverna är fördelade: " + m.join(", ") + "." : "Inga reserver att fördela.", m.length ? () => { S = JSON.parse(snap); saveS(); render(); } : null);
+};
+$("vsOn").onclick = () => { S.vs = true; saveS(); render(); };
+$("vsOff").onclick = () => { S.vs = false; saveS(); render(); };
+$("shareS").onclick = async () => {
+  if (!S.a || !S.a.f.length) { toast("Bygg femmorna först."); return; }
+  if (!me) { ui.nameOpen = true; render(); toast("Skriv ditt namn först, det står på länken."); $("meInput").focus(); return; }
+  S.b = me; S.t = now(); S.from = null; saveS();
+  const url = await linkFor(packSess(S));
+  ui.shareS = url; render();
+  shareBox("shareSBox", url, `${typName(S.y)} ${dateLabel(S.d)} – femmor från ${me}:`, "Den som öppnar länken får exakt dessa femmor och kan ändra och dela tillbaka.");
+};
+
+/* ================= render ================= */
+function render() {
+  $("who").textContent = me ? me : "Vem är du?";
+  $("nameCard").hidden = !(ui.nameOpen || !me);
+  $("tabP").setAttribute("aria-selected", ui.tab === "P"); $("tabO").setAttribute("aria-selected", ui.tab === "O");
+  $("viewP").hidden = ui.tab !== "P"; $("viewO").hidden = ui.tab !== "O";
+  renderNew();
+  if (S && !ui.newOpen) { renderSessHead(); if (S.step === "F" && S.a) renderF(); else { S.step = "N"; renderSessHead(); renderN(); } }
+  renderO();
+}
+render(); renderNotices();
+handleHash();
+window.addEventListener("hashchange", handleHash);
+
+</script>
+
+</body>
+</html>
